@@ -43,6 +43,7 @@ Array.prototype.spliceWithLast=function(index){
 	///Это, очевидно, эффективнее, чем сдвигать весь массив и даже чем просто заменять на null
 	'use strict';
 	this[index]=this[this.length-1];
+    delete this[this.length-1];//действительно удаляем последний символ ( была утечка памяти )
 	this.length--;
 };
 
