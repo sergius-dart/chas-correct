@@ -37,13 +37,11 @@ This file is part of CHAS-CORRECT.
 */
 
 'use strict';
-
+var dicts;
 try{
-	var dict=require('./dictionary.js');
-	for(var chto in dict)
-		global[chto]=dict[chto];
+	dicts=require('./dictionary.js');
 }catch(e){
-	//Значит, не node.js
+	//Значит, не node.js и словари загрузились раньше, и они теперь доступны.
 }
 
 var wordSplitSymbol="([^А-Яа-яЁёA-Za-z]|^|$)";
@@ -106,15 +104,17 @@ function prepareReplaceHeavy(reg, str, prefix, postfix){
 
 var megaexpressionParts=[];
 
-var globalArray=[
-	[orphoFragmentsToCorrect,orphoPostfixToCorrect],
-	[orphoPrefixToCorrect,orphoWordsToCorrect],
-];
+var globalArray=dicts.dicts;
 
-for(var i1=0; i1<=1;i1++)
-	for(var i2=0; i2<=1;i2++)
-		for(var i=0; i<globalArray[i1][i2].length; i++){
-			prepareExpression(globalArray[i1][i2][i][0],globalArray[i1][i2][i][1],i1,i2);
+for(var topIndex=0; topIndex < globalArray.length ;topIndex++)
+	for(var localIndex=0; localIndex < globalArray[topIndex];localIndex++)
+		for(var dictIndex=0; dictIndex<globalArray[topIndex][localIndex].length; dictIndex++){
+			prepareExpression(
+                        globalArray[topIndex][localIndex][dictIndex][0],
+                        globalArray[topIndex][localIndex][dictIndex][1],
+                        topIndex,
+                        localIndex
+                        );
 //			megaexpressionParts.push(globalArray[i1][i2][i][0]);
 		}
 
@@ -154,7 +154,8 @@ var correct={
 
 //Теперь удаляем исходные словари - они больше не нужны, все слова уже обработаны, только память занимают
 //TODO: делать это вообще при сборке. Когда она будет
-orphoWordsToCorrect=orphoPrefixToCorrect=orphoPostfixToCorrect=orphoFragmentsToCorrect=globalArray=null;
+dicts.clear();//освобождаем память из под словарей
+delete globalArray;//убираем последную ссылку на словари.
 
 try{
 	module.exports.actionArray = actionArray;
